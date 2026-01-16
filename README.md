@@ -2,28 +2,27 @@
 
 一个 Claude Code 插件，从对话中自动学习用户特征，构建个人化的 AI 数字分身。
 
-## 快速安装
+## 快速开始
 
-### 方法 1：直接安装（推荐）
+### 1. 添加 Marketplace
 
-```bash
-# 在 Claude Code 中运行
-/plugin install ahhsitt/as-me
+在 Claude Code 中运行：
+
+```
+/plugin marketplace add ahhsitt/marketplace
 ```
 
-### 方法 2：从本地安装（开发用）
+### 2. 安装插件
 
-```bash
-# 克隆仓库
-git clone https://github.com/ahhsitt/as-me.git
-
-# 安装 Python 依赖
-cd as-me
-pip install -e .
-
-# 在 Claude Code 中安装插件
-/plugin install /path/to/as-me
 ```
+/plugin install as-me@marketplace
+```
+
+### 3. 开始使用
+
+安装完成后，插件会自动生效：
+- 每次新会话启动时自动在后台分析上次会话
+- 自动将相关记忆注入到新对话中
 
 ## 功能特性
 
@@ -180,11 +179,14 @@ as-me evolution timeline
 
 ## 卸载
 
-```bash
+```
 # 在 Claude Code 中运行
-/plugin uninstall as-me
+/plugin uninstall as-me@marketplace
 
-# 可选：删除数据目录
+# 移除 marketplace（可选）
+/plugin marketplace remove marketplace
+
+# 删除数据目录（可选）
 rm -rf ~/.as-me
 ```
 
