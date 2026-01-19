@@ -27,13 +27,13 @@ class MessageContent(BaseModel):
 class ConversationEntry(BaseModel):
     """对话条目"""
     uuid: str                    # 消息唯一 ID
-    parentUuid: str              # 父消息 ID（线程）
+    parentUuid: Optional[str] = None  # 父消息 ID（线程），根消息时为 None
     timestamp: str               # ISO 8601
     type: Literal['user', 'assistant', 'system']
     sessionId: str
     cwd: str
     gitBranch: Optional[str] = None
-    message: MessageContent
+    message: Optional[MessageContent] = None  # 消息内容，某些条目可能没有
     isSidechain: bool = False    # 是否为子代理对话
 
 
@@ -76,6 +76,10 @@ class ConversationParser:
         entries = []
         try:
             for entry in self._iter_jsonl(session_path):
+                # 跳过非对话条目（summary, file-history-snapshot 等）
+                entry_type = entry.get("type")
+                if entry_type not in ("user", "assistant", "system"):
+                    continue
                 entries.append(ConversationEntry.model_validate(entry))
         except json.JSONDecodeError as e:
             raise AsmeError(
@@ -201,6 +205,8 @@ class ConversationParser:
                 continue
             if entry.isSidechain:
                 continue  # 跳过子代理对话
+            if entry.message is None:
+                continue  # 跳过没有消息内容的条目
 
             content = entry.message.content
             if isinstance(content, str):

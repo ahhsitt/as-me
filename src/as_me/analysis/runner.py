@@ -86,12 +86,9 @@ class BackgroundRunner:
 
         try:
             proc = subprocess.Popen(cmd, **kwargs)
-            pid = proc.pid
-
-            # 写入 PID 文件
-            BackgroundRunner._write_pid(pid_path, pid)
-
-            return pid
+            # 注意：不在这里写 PID 文件，让子进程自己写
+            # 避免竞态条件：子进程检查时会发现自己的 PID 已存在
+            return proc.pid
         except Exception:
             return None
 
@@ -100,6 +97,7 @@ class BackgroundRunner:
         """检查是否有分析进程正在运行
 
         通过检查 PID 文件和进程状态判断。
+        如果 PID 文件存在但进程已不存在，会自动清理 PID 文件。
 
         Args:
             storage_root: 存储根目录
@@ -111,7 +109,14 @@ class BackgroundRunner:
         if pid is None:
             return False
 
-        return BackgroundRunner._is_process_running(pid)
+        is_running = BackgroundRunner._is_process_running(pid)
+
+        # 如果进程不存在，清理 stale PID 文件
+        if not is_running:
+            BackgroundRunner.cleanup_pid(storage_root)
+            return False
+
+        return True
 
     @staticmethod
     def get_running_pid(storage_root: Path | None = None) -> int | None:
