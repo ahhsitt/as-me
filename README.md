@@ -1,6 +1,6 @@
 # As-Me: AI 数字分身
 
-一个 Claude Code 插件，从对话中自动学习用户特征，构建个人化的 AI 数字分身。
+一个 Claude Code 插件，从对话中学习用户特征，构建个人化的 AI 数字分身。
 
 ## 快速开始
 
@@ -21,12 +21,12 @@
 ### 3. 开始使用
 
 安装完成后，插件会自动生效：
-- 每次新会话启动时自动在后台分析上次会话
-- 自动将相关记忆注入到新对话中
+- 新会话启动时自动注入已有记忆
+- 使用 `/as-me-analyze` 提取当前对话中的用户特征
 
 ## 功能特性
 
-- **自动记忆提取**: 每次启动新会话时自动在后台分析上次会话，无需手动操作
+- **记忆提取**: 通过 Skill 分析当前对话，提取用户特征
 - **记忆注入**: 在新对话开始时自动注入相关记忆，让 AI 更好地理解你
 - **内核原则**: 从记忆中聚合形成稳定的个人原则（世界观、价值观、决策模式）
 - **演化追踪**: 记录原则如何随时间发展和演化
@@ -34,37 +34,26 @@
 
 ## 使用方法
 
-### 自动记忆提取
-
-1. **自动触发**: 每次启动新会话时，系统自动在后台分析上次会话
-2. **非阻塞**: 后台异步执行，不影响正常对话
-3. **智能去重**: 自动跳过已分析的会话
-4. **失败重试**: 自动重试失败的分析任务
-
-无需手动执行 `/as-me-analyze` 命令，系统会自动处理一切。
-
 ### 斜杠命令
 
 安装后，在 Claude Code 中可以使用以下命令：
 
 | 命令 | 描述 |
 |------|------|
-| `/as-me-analyze` | 手动分析（已自动化，通常无需使用） |
 | `/as-me-memories` | 查看和管理记忆 |
 | `/as-me-principles` | 查看和管理原则 |
 | `/as-me-evolution` | 查看演化历史 |
 
+记忆提取通过 Skill 自动进行，Claude 会在对话中识别到用户特征时主动提取。
+
 ## 工作原理
 
-### 1. 自动记忆提取
+### 1. 记忆提取
 
-每次启动新的 Claude Code 会话时，SessionStart Hook 会自动：
-- 检查是否有上次会话需要分析
-- 在后台启动独立进程分析上次会话
-- 使用 AI 提取技术偏好、思维模式、行为习惯、语言风格等特征
+当 Claude 在对话中识别到用户特征时，会自动通过 Skill 提取：
+- 识别用户表达的偏好、习惯、价值观
+- 提取身份背景、思维模式、沟通风格等特征
 - 将这些特征存储为"记忆原子"
-
-整个过程完全自动化，不阻塞用户的下一次对话。
 
 ### 2. 记忆注入
 
@@ -114,17 +103,13 @@
 ~/.as-me/
 ├── profile.json              # 用户档案
 ├── memories/
-│   ├── short-term.json       # 短期记忆
-│   ├── working.json          # 工作记忆
-│   └── long-term.json        # 长期记忆
+│   └── short-term.json.gz    # 记忆存储（gzip 压缩）
 ├── principles/
 │   └── core.json             # 内核原则
 ├── evidence/
 │   └── index.json            # 证据索引
-├── evolution/
-│   └── history.json          # 演化历史
-└── logs/
-    └── analyzed.json         # 分析日志
+└── evolution/
+    └── history.json          # 演化历史
 ```
 
 ## 配置
@@ -134,29 +119,13 @@
 ```json
 {
   "settings": {
-    "extraction_enabled": true,
     "injection_enabled": true,
     "max_injected_memories": 10,
     "confidence_threshold": 0.5,
-    "decay_half_life_days": 30,
-    "auto_extraction": {
-      "enabled": true,
-      "max_sessions_per_run": 5,
-      "max_messages_per_session": 100,
-      "retry_limit": 3
-    }
+    "decay_half_life_days": 30
   }
 }
 ```
-
-### 自动提取配置项
-
-| 配置项 | 默认值 | 描述 |
-|--------|--------|------|
-| `auto_extraction.enabled` | true | 是否启用自动提取 |
-| `auto_extraction.max_sessions_per_run` | 5 | 每次运行最多分析的会话数 |
-| `auto_extraction.max_messages_per_session` | 100 | 每个会话最多分析的消息数 |
-| `auto_extraction.retry_limit` | 3 | 失败重试次数上限 |
 
 ## 卸载
 
