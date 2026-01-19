@@ -1,5 +1,5 @@
 ---
-name: memory-context
+name: as-me-memory-context
 description: 为当前对话注入用户记忆上下文
 ---
 

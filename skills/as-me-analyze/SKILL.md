@@ -1,10 +1,9 @@
 ---
-name: analyze
+name: as-me-analyze
 description: 分析对话历史并提取用户记忆。在完成有意义的对话后使用。
-user_invocable: true
 ---
 
-# /as-me:analyze
+# Analyze Conversation for User Memories
 
 分析当前对话，提取用户的特征、偏好和习惯，存储为记忆原子。
 
