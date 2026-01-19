@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import json
-import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -15,8 +14,6 @@ from ..memory.decay import MemoryDecay
 from ..memory.retriever import MemoryRetriever
 from ..memory.store import MemoryStore
 from ..storage import ensure_storage_dir, get_storage_path, ColdStorageManager
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -185,10 +182,11 @@ class SessionStartHook:
 
         Args:
             store: 记忆存储
-            memories: 被触发的记忆列表
+            memories: 被触发的记忆列表 (ScoredMemory 对象)
         """
-        for memory in memories:
-            store.trigger(memory.id)
+        for scored_memory in memories:
+            # ScoredMemory 包装了实际的 MemoryAtom
+            store.trigger(scored_memory.memory.id)
 
     def _archive_cold_data(self) -> None:
         """归档冷数据
@@ -198,9 +196,9 @@ class SessionStartHook:
         try:
             cold_storage = ColdStorageManager(self.storage_root)
             cold_storage.archive_old_evidence(cutoff_days=90)
-        except Exception as e:
-            # 归档失败不应影响主流程
-            logger.warning(f"冷存储归档失败: {e}")
+        except Exception:
+            # 归档失败不应影响主流程，静默忽略
+            pass
 
 
 def generate_context() -> str:
