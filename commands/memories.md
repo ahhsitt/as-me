@@ -1,9 +1,9 @@
 ---
-name: memories
+name: as-me-memories
 description: 查看和管理存储的记忆
 ---
 
-# /as-me:memories
+# /as-me-memories
 
 查看、管理和删除已存储的记忆原子。
 
@@ -12,7 +12,7 @@ description: 查看和管理存储的记忆
 ### 列出记忆
 
 ```
-/as-me:memories list
+/as-me-memories list
 ```
 
 选项：
@@ -31,7 +31,7 @@ description: 查看和管理存储的记忆
 ### 查看记忆详情
 
 ```
-/as-me:memories show <ID>
+/as-me-memories show <ID>
 ```
 
 支持使用记忆 ID 的前缀（至少 8 位）。
@@ -39,7 +39,7 @@ description: 查看和管理存储的记忆
 ### 删除记忆
 
 ```
-/as-me:memories delete <ID>
+/as-me-memories delete <ID>
 ```
 
 删除前会要求确认。
@@ -48,22 +48,22 @@ description: 查看和管理存储的记忆
 
 列出所有技术偏好：
 ```
-/as-me:memories list -t tech_preference
+/as-me-memories list -t tech_preference
 ```
 
 列出长期记忆（详细信息）：
 ```
-/as-me:memories list --tier long_term -v
+/as-me-memories list --tier long_term -v
 ```
 
 查看特定记忆：
 ```
-/as-me:memories show abc123ef
+/as-me-memories show abc123ef
 ```
 
 删除记忆：
 ```
-/as-me:memories delete abc123ef
+/as-me-memories delete abc123ef
 ```
 
 ## 输出格式

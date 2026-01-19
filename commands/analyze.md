@@ -1,9 +1,9 @@
 ---
-name: analyze
+name: as-me-analyze
 description: 分析对话历史并提取用户记忆（已自动化，通常无需手动执行）
 ---
 
-# /as-me:analyze
+# /as-me-analyze
 
 > **注意**: 记忆提取已自动化！每次启动新会话时，系统会自动在后台分析上次会话并提取记忆。通常不需要手动执行此命令。
 
@@ -31,13 +31,13 @@ description: 分析对话历史并提取用户记忆（已自动化，通常无�
 由于记忆提取已自动化，直接运行命令会显示提示信息：
 
 ```
-/as-me:analyze
+/as-me-analyze
 ```
 
 如需强制手动分析，请使用 `--force` 选项：
 
 ```
-/as-me:analyze --force
+/as-me-analyze --force
 ```
 
 ### 选项
@@ -58,28 +58,28 @@ description: 分析对话历史并提取用户记忆（已自动化，通常无�
 
 查看自动化提示：
 ```
-/as-me:analyze
+/as-me-analyze
 ```
 
 强制分析最近一个对话：
 ```
-/as-me:analyze --force
+/as-me-analyze --force
 ```
 
 分析最近 10 个未分析的对话：
 ```
-/as-me:analyze --force --all -n 10
+/as-me-analyze --force --all -n 10
 ```
 
 分析指定会话：
 ```
-/as-me:analyze -s abc123ef-...
+/as-me-analyze -s abc123ef-...
 ```
 
 ## 查看分析结果
 
 ```
-/as-me:memories list
+/as-me-memories list
 ```
 
 提取的记忆存储在 `~/.as-me/memories/` 目录下。

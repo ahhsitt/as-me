@@ -1,9 +1,9 @@
 ---
-name: evolution
+name: as-me-evolution
 description: 查看原则和记忆的演化历史
 ---
 
-# /as-me:evolution
+# /as-me-evolution
 
 查看原则的演化历史和时间线，追踪记忆如何随时间变化。
 
@@ -23,13 +23,13 @@ description: 查看原则和记忆的演化历史
 查看特定原则的完整演化历史：
 
 ```
-/as-me:evolution history -p <PRINCIPLE_ID>
+/as-me-evolution history -p <PRINCIPLE_ID>
 ```
 
 查看所有演化事件：
 
 ```
-/as-me:evolution history
+/as-me-evolution history
 ```
 
 选项：
@@ -42,7 +42,7 @@ description: 查看原则和记忆的演化历史
 按时间线查看所有演化事件：
 
 ```
-/as-me:evolution timeline
+/as-me-evolution timeline
 ```
 
 选项：
@@ -53,24 +53,24 @@ description: 查看原则和记忆的演化历史
 ### 查看事件详情
 
 ```
-/as-me:evolution show <EVENT_ID>
+/as-me-evolution show <EVENT_ID>
 ```
 
 ## 示例
 
 查看特定原则的演化历史：
 ```
-/as-me:evolution history -p abc123ef
+/as-me-evolution history -p abc123ef
 ```
 
 查看所有用户确认事件：
 ```
-/as-me:evolution timeline -t user_confirm
+/as-me-evolution timeline -t user_confirm
 ```
 
 查看详细的时间线：
 ```
-/as-me:evolution timeline -v
+/as-me-evolution timeline -v
 ```
 
 ## 输出格式

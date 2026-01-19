@@ -1,9 +1,9 @@
 ---
-name: principles
+name: as-me-principles
 description: 查看和管理内核原则
 ---
 
-# /as-me:principles
+# /as-me-principles
 
 查看、确认、修正和管理从记忆中聚合形成的内核原则。
 
@@ -19,7 +19,7 @@ description: 查看和管理内核原则
 ### 列出原则
 
 ```
-/as-me:principles list
+/as-me-principles list
 ```
 
 选项：
@@ -31,7 +31,7 @@ description: 查看和管理内核原则
 ### 查看原则详情
 
 ```
-/as-me:principles show <ID>
+/as-me-principles show <ID>
 ```
 
 ### 确认原则
@@ -39,7 +39,7 @@ description: 查看和管理内核原则
 确认后原则的置信度会提升。
 
 ```
-/as-me:principles confirm <ID>
+/as-me-principles confirm <ID>
 ```
 
 ### 修正原则
@@ -47,35 +47,35 @@ description: 查看和管理内核原则
 修改原则陈述并记录修正原因。
 
 ```
-/as-me:principles correct <ID> -s "新的陈述" -r "修正原因"
+/as-me-principles correct <ID> -s "新的陈述" -r "修正原因"
 ```
 
 ### 删除原则
 
 ```
-/as-me:principles delete <ID>
+/as-me-principles delete <ID>
 ```
 
 ## 示例
 
 列出所有决策模式原则：
 ```
-/as-me:principles list -d decision_pattern
+/as-me-principles list -d decision_pattern
 ```
 
 列出已确认的原则（详细信息）：
 ```
-/as-me:principles list --confirmed -v
+/as-me-principles list --confirmed -v
 ```
 
 确认一个原则：
 ```
-/as-me:principles confirm abc123ef
+/as-me-principles confirm abc123ef
 ```
 
 修正一个原则：
 ```
-/as-me:principles correct abc123ef -s "更倾向于实用主义而非完美主义" -r "原描述过于绝对"
+/as-me-principles correct abc123ef -s "更倾向于实用主义而非完美主义" -r "原描述过于绝对"
 ```
 
 ## 输出格式
