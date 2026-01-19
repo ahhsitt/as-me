@@ -5,10 +5,6 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime
-from pathlib import Path
-
 import click
 
 from . import __version__
@@ -40,203 +36,26 @@ def inject_context(max_memories: int, min_confidence: float):
     click.echo(output.to_json())
 
 
-@main.command("analyze-background")
-@click.option("--log-file", type=click.Path(), help="日志文件路径")
-@click.option("--max-sessions", "-n", default=5, help="最大分析会话数量")
-def analyze_background(log_file: str | None, max_sessions: int):
-    """后台分析命令（由 SessionStart Hook 自动调用）
-
-    此命令用于在后台执行会话分析，提取记忆原子。
-    通常不需要手动调用，由 SessionStart Hook 自动触发。
-
-    退出码:
-      0 - 成功
-      1 - 错误
-      2 - 已有分析进程运行
-    """
-    import logging
-    import sys
-
-    from .analysis.runner import BackgroundRunner
-    from .analysis.scheduler import AnalysisScheduler
-
-    # 配置日志
-    if log_file:
-        logging.basicConfig(
-            filename=log_file,
-            level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-    else:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-
-    logger = logging.getLogger("as_me.analyze_background")
-    storage_root = get_storage_path()
-
-    try:
-        # 检查是否已有进程运行
-        if BackgroundRunner.is_analysis_running(storage_root):
-            logger.warning("分析进程已在运行")
-            sys.exit(2)
-
-        # 写入 PID 文件
-        pid_path = storage_root / BackgroundRunner.PID_FILE
-        pid_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(pid_path, "w") as f:
-            import os
-            f.write(str(os.getpid()))
-
-        logger.info("开始后台分析...")
-
-        # 执行分析
-        scheduler = AnalysisScheduler(storage_root)
-
-        if not scheduler.should_run_analysis():
-            logger.info("没有待分析的会话")
-            BackgroundRunner.cleanup_pid(storage_root)
-            sys.exit(0)
-
-        result = scheduler.run_analysis()
-
-        logger.info(
-            f"分析完成: 共 {result.total_sessions} 个会话, "
-            f"成功 {result.analyzed_count}, "
-            f"跳过 {result.skipped_count}, "
-            f"失败 {result.failed_count}, "
-            f"提取 {result.total_memories} 条记忆, "
-            f"耗时 {result.duration_ms}ms"
-        )
-
-        if result.errors:
-            for error in result.errors:
-                logger.error(f"错误: {error}")
-
-        # 清理 PID 文件
-        BackgroundRunner.cleanup_pid(storage_root)
-        sys.exit(0)
-
-    except Exception as e:
-        logger.error(f"分析失败: {e}")
-        BackgroundRunner.cleanup_pid(storage_root)
-        sys.exit(1)
-
-
 @main.command("analyze")
-@click.option("--session", "-s", help="指定会话 ID")
-@click.option("--all", "analyze_all", is_flag=True, help="分析所有未分析的会话")
-@click.option("--limit", "-n", default=5, help="分析会话数量上限")
-@click.option("--force", "-f", is_flag=True, help="强制执行手动分析（记忆提取已自动化，通常无需手动执行）")
-def analyze(session: str | None, analyze_all: bool, limit: int, force: bool):
-    """分析对话并提取记忆
+def analyze():
+    """分析当前对话并提取记忆
 
-    从 Claude Code 对话历史中提取用户特征。
+    注意: 记忆提取现在通过 Claude Code Skill 实现。
+    请在 Claude Code 中使用 /as-me:analyze 命令触发分析。
 
-    注意: 记忆提取已自动化，每次启动新会话时会自动在后台分析上次会话。
-    通常不需要手动执行此命令。如确需手动分析，请使用 --force 选项。
+    Skill 会利用 Claude 自身的 LLM 能力分析当前对话，
+    无需额外配置 LLM 客户端。
     """
-    # 检查是否需要显示自动化提示
-    if not force and not session:
-        click.echo("提示: 记忆提取已自动化！")
-        click.echo("")
-        click.echo("每次启动新会话时，系统会自动在后台分析上次会话并提取记忆。")
-        click.echo("通常不需要手动执行此命令。")
-        click.echo("")
-        click.echo("如果确需手动分析，请使用以下选项:")
-        click.echo("  as-me analyze --force        # 强制手动分析")
-        click.echo("  as-me analyze -s <会话ID>    # 分析指定会话")
-        click.echo("")
-        click.echo("查看分析状态:")
-        click.echo("  as-me memories list          # 查看已提取的记忆")
-        return
-
-    from .conversation.parser import ConversationParser
-    from .memory.extractor import MemoryExtractor
-    from .memory.store import MemoryStore
-    from .storage.json_store import read_json
-
-    # 确保存储目录存在
-    ensure_storage_dir()
-
-    store = MemoryStore()
-    parser = ConversationParser()
-    extractor = MemoryExtractor()
-
-    # 获取已分析的会话
-    logs_file = get_storage_path("logs/analyzed.json")
-    analyzed_logs = read_json(logs_file) or []
-    analyzed_ids = {log["session_id"] for log in analyzed_logs}
-
-    if session:
-        # 分析指定会话
-        sessions_to_analyze = []
-        for s in parser.get_recent_sessions(limit=50):
-            if s.stem == session:
-                sessions_to_analyze = [s]
-                break
-        if not sessions_to_analyze:
-            click.echo(f"错误: 未找到会话 {session}", err=True)
-            return
-    elif analyze_all:
-        # 分析所有未分析的会话
-        sessions_to_analyze = parser.get_unanalyzed_sessions(analyzed_ids, limit=limit)
-    else:
-        # 默认分析最近一个未分析的会话
-        sessions_to_analyze = parser.get_unanalyzed_sessions(analyzed_ids, limit=1)
-
-    if not sessions_to_analyze:
-        click.echo("没有待分析的会话")
-        return
-
-    total_extracted = 0
-    for session_path in sessions_to_analyze:
-        session_id = session_path.stem
-        click.echo(f"分析会话: {session_id[:8]}...")
-
-        try:
-            entries = parser.parse(session_path)
-            messages = parser.extract_user_messages(entries)
-
-            if not messages:
-                click.echo(f"  跳过: 无用户消息")
-                continue
-
-            # 检查是否有可提取特征
-            if not extractor.has_extractable_features(messages):
-                click.echo(f"  跳过: 无可提取特征")
-                continue
-
-            # 提取记忆
-            result = extractor.extract(messages, session_id)
-
-            if result.memories:
-                store.save_batch(result.memories)
-                total_extracted += len(result.memories)
-                click.echo(f"  提取: {len(result.memories)} 条记忆")
-                for mem in result.memories:
-                    click.echo(f"    - [{mem.type.value}] {mem.content[:50]}...")
-            else:
-                click.echo(f"  结果: 无记忆提取")
-
-            # 记录已分析
-            analyzed_logs.append({
-                "session_id": session_id,
-                "project_path": str(session_path.parent),
-                "analyzed_at": datetime.now().isoformat(),
-                "extracted_count": len(result.memories),
-                "message_count": len(messages),
-            })
-
-        except Exception as e:
-            click.echo(f"  错误: {e}", err=True)
-
-    # 保存分析日志
-    from .storage.json_store import write_json
-    write_json(logs_file, analyzed_logs)
-
-    click.echo(f"\n完成! 共提取 {total_extracted} 条记忆")
+    click.echo("记忆提取现已通过 Claude Code Skill 实现！")
+    click.echo("")
+    click.echo("请在 Claude Code 中使用以下命令：")
+    click.echo("  /as-me:analyze")
+    click.echo("")
+    click.echo("Skill 会利用 Claude 自身的 LLM 能力分析当前对话，")
+    click.echo("无需额外配置，提取质量更高。")
+    click.echo("")
+    click.echo("查看已提取的记忆：")
+    click.echo("  as-me memories list")
 
 
 @main.group("memories")
@@ -246,7 +65,7 @@ def memories():
 
 
 @memories.command("list")
-@click.option("--type", "-t", "memory_type", help="按类型过滤 (tech_preference, thinking_pattern, behavior_habit, language_style)")
+@click.option("--type", "-t", "memory_type", help="按类型过滤 (identity, value, thinking, preference, communication)")
 @click.option("--tier", help="按层级过滤 (short_term, working, long_term)")
 @click.option("--limit", "-n", default=20, help="显示数量限制")
 @click.option("--verbose", "-v", is_flag=True, help="显示详细信息")
@@ -266,7 +85,7 @@ def memories_list(memory_type: str | None, tier: str | None, limit: int, verbose
             options.memory_type = MemoryType(memory_type)
         except ValueError:
             click.echo(f"错误: 无效的记忆类型 '{memory_type}'", err=True)
-            click.echo("有效类型: tech_preference, thinking_pattern, behavior_habit, language_style")
+            click.echo("有效类型: identity, value, thinking, preference, communication")
             return
 
     if tier:

@@ -4,7 +4,6 @@
 - MemoryType: 记忆类型枚举
 - MemoryTier: 记忆层级枚举
 - MemoryAtom: 记忆原子模型
-- AutoExtractionSettings: 自动提取配置（从 analysis.models 导入）
 - ProfileSettings: 档案设置模型
 - Profile: 用户档案模型
 """
@@ -13,21 +12,25 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 import uuid
 
 from pydantic import BaseModel, Field
 
-if TYPE_CHECKING:
-    from ..analysis.models import AutoExtractionSettings as _AutoExtractionSettings
-
 
 class MemoryType(str, Enum):
-    """记忆类型"""
-    TECH_PREFERENCE = "tech_preference"      # 技术偏好
-    THINKING_PATTERN = "thinking_pattern"    # 思维模式
-    LANGUAGE_STYLE = "language_style"        # 语言风格
-    BEHAVIOR_HABIT = "behavior_habit"        # 行为习惯
+    """记忆类型
+
+    五大维度，覆盖身份层、认知层、偏好层：
+    - 身份层：identity, value
+    - 认知层：thinking
+    - 偏好层：preference, communication
+    """
+    IDENTITY = "identity"           # 身份背景：角色、目标、专业领域
+    VALUE = "value"                 # 价值信念：信念、原则、优先级
+    THINKING = "thinking"           # 思维认知：分析方法、决策风格
+    PREFERENCE = "preference"       # 偏好习惯：工具、方法、风格偏好
+    COMMUNICATION = "communication" # 沟通表达：沟通风格、表达习惯
 
 
 class MemoryTier(str, Enum):
@@ -64,26 +67,12 @@ class MemoryAtom(BaseModel):
     tags: List[str] = Field(default_factory=list)
 
 
-# 内联定义 AutoExtractionSettings 以避免循环导入
-class AutoExtractionSettings(BaseModel):
-    """自动提取配置"""
-    enabled: bool = True                     # 是否启用
-    max_sessions_per_run: int = Field(default=5, ge=1, le=20)
-    max_messages_per_session: int = Field(default=100, ge=10, le=500)
-    retry_limit: int = Field(default=3, ge=1, le=10)
-
-
 class ProfileSettings(BaseModel):
     """档案设置"""
-    extraction_enabled: bool = True       # 是否启用自动提取
     injection_enabled: bool = True        # 是否启用记忆注入
     max_injected_memories: int = Field(default=10, ge=1, le=50)
     confidence_threshold: float = Field(default=0.5, ge=0, le=1)
     decay_half_life_days: int = Field(default=30, ge=7, le=365)
-    # 新增: 自动提取配置
-    auto_extraction: AutoExtractionSettings = Field(
-        default_factory=AutoExtractionSettings
-    )
 
 
 class Profile(BaseModel):
