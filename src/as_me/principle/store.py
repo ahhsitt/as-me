@@ -11,7 +11,7 @@ from typing import Dict, List, Optional
 
 from ..errors import AsmeError, ErrorCode
 from ..storage.base import ensure_storage_dir, get_storage_path
-from ..storage.json_store import read_json, write_json
+from ..storage.json_store import read_json_gz, write_json_gz
 from .models import EvolutionTrigger, Principle, PrincipleDimension
 
 
@@ -269,11 +269,11 @@ class PrincipleStore:
 
     def _load_all(self) -> List[Dict]:
         """加载所有原则"""
-        return read_json(self.principles_file) or []
+        return read_json_gz(self.principles_file) or []
 
     def _save_all(self, principles: List[Dict]) -> None:
         """保存所有原则"""
-        write_json(self.principles_file, principles)
+        write_json_gz(self.principles_file, principles)
 
     def _record_evolution(
         self,

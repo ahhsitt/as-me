@@ -12,7 +12,7 @@ from typing import Dict, List, Optional
 
 from ..errors import AsmeError, ErrorCode
 from ..storage.base import ensure_storage_dir, get_storage_path
-from ..storage.json_store import read_json, write_json
+from ..storage.json_store import read_json_gz, write_json_gz
 from .models import MemoryAtom, MemoryTier, MemoryType
 
 
@@ -265,12 +265,12 @@ class MemoryStore:
     def _load_tier(self, tier: MemoryTier) -> List[Dict]:
         """加载指定层级的记忆"""
         file_path = self.memories_dir / self.TIER_FILES[tier]
-        return read_json(file_path) or []
+        return read_json_gz(file_path) or []
 
     def _save_tier(self, tier: MemoryTier, memories: List[Dict]) -> None:
         """保存指定层级的记忆"""
         file_path = self.memories_dir / self.TIER_FILES[tier]
-        write_json(file_path, memories)
+        write_json_gz(file_path, memories)
 
     def _remove_from_tier(self, memory_id: str, tier: MemoryTier) -> bool:
         """从指定层级移除记忆"""

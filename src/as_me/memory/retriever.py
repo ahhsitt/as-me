@@ -36,10 +36,11 @@ class MemoryRetriever:
 
     # 类型权重
     TYPE_WEIGHTS = {
-        MemoryType.TECH_PREFERENCE: 1.0,
-        MemoryType.THINKING_PATTERN: 0.9,
-        MemoryType.BEHAVIOR_HABIT: 0.8,
-        MemoryType.LANGUAGE_STYLE: 0.6,
+        MemoryType.IDENTITY: 1.0,       # 身份背景最重要
+        MemoryType.VALUE: 0.95,         # 价值信念
+        MemoryType.THINKING: 0.9,       # 思维认知
+        MemoryType.PREFERENCE: 0.8,     # 偏好习惯
+        MemoryType.COMMUNICATION: 0.7,  # 沟通表达
     }
 
     def __init__(self, store: MemoryStore, half_life_days: int = 30):
@@ -120,16 +121,18 @@ class MemoryRetriever:
 
         # 类型显示名称
         type_names = {
-            MemoryType.TECH_PREFERENCE: "技术偏好",
-            MemoryType.THINKING_PATTERN: "思维模式",
-            MemoryType.BEHAVIOR_HABIT: "行为习惯",
-            MemoryType.LANGUAGE_STYLE: "语言风格",
+            MemoryType.IDENTITY: "身份背景",
+            MemoryType.VALUE: "价值信念",
+            MemoryType.THINKING: "思维认知",
+            MemoryType.PREFERENCE: "偏好习惯",
+            MemoryType.COMMUNICATION: "沟通表达",
         }
 
         current_length = sum(len(line) for line in lines)
 
-        for mem_type in [MemoryType.TECH_PREFERENCE, MemoryType.THINKING_PATTERN,
-                         MemoryType.BEHAVIOR_HABIT, MemoryType.LANGUAGE_STYLE]:
+        for mem_type in [MemoryType.IDENTITY, MemoryType.VALUE,
+                         MemoryType.THINKING, MemoryType.PREFERENCE,
+                         MemoryType.COMMUNICATION]:
             type_memories = by_type.get(mem_type, [])
             if not type_memories:
                 continue

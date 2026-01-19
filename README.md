@@ -54,28 +54,6 @@
 | `/as-me-principles` | 查看和管理原则 |
 | `/as-me-evolution` | 查看演化历史 |
 
-### CLI 命令
-
-```bash
-# 分析对话
-as-me analyze
-
-# 查看记忆
-as-me memories list
-as-me memories show <ID>
-as-me memories delete <ID>
-
-# 查看原则
-as-me principles list
-as-me principles show <ID>
-as-me principles confirm <ID>
-as-me principles correct <ID> -s "新陈述" -r "原因"
-
-# 查看演化历史
-as-me evolution history
-as-me evolution timeline
-```
-
 ## 工作原理
 
 ### 1. 自动记忆提取
@@ -103,10 +81,15 @@ as-me evolution timeline
 
 ## 记忆类型
 
-- **tech_preference**: 技术偏好（如编程语言、框架、工具）
-- **thinking_pattern**: 思维模式（如问题分析方式、决策风格）
-- **behavior_habit**: 行为习惯（如工作流程、沟通方式）
-- **language_style**: 语言风格（如表达偏好、专业术语）
+记忆按三层模型组织，覆盖身份层、认知层、偏好层：
+
+| 类型 | 层级 | 描述 | 示例 |
+|------|------|------|------|
+| `identity` | 身份层 | 角色、背景、目标、专业领域 | "产品经理，负责 B 端 SaaS" |
+| `value` | 身份层 | 价值观、信念、原则 | "认为用户体验比功能完整性更重要" |
+| `thinking` | 认知层 | 思维模式、分析方法、决策风格 | "习惯用第一性原理分析问题" |
+| `preference` | 偏好层 | 工具、方法、风格偏好 | "写作时偏好先列大纲再填充内容" |
+| `communication` | 偏好层 | 沟通风格、表达习惯 | "偏好直接给结论，不需要铺垫" |
 
 ## 记忆层级
 

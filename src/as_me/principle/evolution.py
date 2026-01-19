@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from ..storage import get_storage_path
-from ..storage.json_store import read_json, write_json
+from ..storage.json_store import read_json_gz, write_json_gz
 from .models import EvolutionEvent, EvolutionTrigger
 
 
@@ -133,7 +133,7 @@ class EvolutionTracker:
 
     def _load_events(self) -> List[EvolutionEvent]:
         """加载演化事件"""
-        data = read_json(self._file_path)
+        data = read_json_gz(self._file_path)
         if not data:
             return []
         return [EvolutionEvent.model_validate(item) for item in data]
@@ -141,4 +141,4 @@ class EvolutionTracker:
     def _save_events(self, events: List[EvolutionEvent]) -> None:
         """保存演化事件"""
         data = [event.model_dump(mode="json") for event in events]
-        write_json(self._file_path, data)
+        write_json_gz(self._file_path, data)

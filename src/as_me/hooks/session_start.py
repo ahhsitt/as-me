@@ -1,7 +1,6 @@
 """SessionStart Hook 处理器
 
 处理 Claude Code 的 SessionStart 事件，注入用户记忆上下文。
-同时触发后台分析进程处理上次会话。
 """
 
 from __future__ import annotations
@@ -15,7 +14,7 @@ from typing import Optional
 from ..memory.decay import MemoryDecay
 from ..memory.retriever import MemoryRetriever
 from ..memory.store import MemoryStore
-from ..storage import ensure_storage_dir, get_storage_path
+from ..storage import ensure_storage_dir, get_storage_path, ColdStorageManager
 
 logger = logging.getLogger(__name__)
 
@@ -74,10 +73,11 @@ class SessionStartHook:
     def handle(self, event_type: str = "startup") -> HookOutput:
         """处理 SessionStart 事件
 
-        扩展行为：
-        1. 执行现有逻辑（记忆注入）
-        2. 检查是否需要触发后台分析
-        3. 如果需要，启动后台分析进程
+        行为：
+        1. 检查记忆注入是否启用
+        2. 应用记忆衰减（如果启用）
+        3. 检索相关记忆并强化
+        4. 格式化并返回注入内容
 
         Args:
             event_type: 事件类型（startup 或 resume）
@@ -89,9 +89,6 @@ class SessionStartHook:
             # 确保存储目录存在
             ensure_storage_dir(self.storage_root)
 
-            # 触发后台分析（不阻塞）
-            self._trigger_background_analysis()
-
             # 检查是否启用记忆注入
             if not self._is_injection_enabled():
                 return HookOutput()
@@ -101,6 +98,9 @@ class SessionStartHook:
             # 应用记忆衰减（如果启用）
             if self.apply_decay:
                 self._apply_memory_decay(store)
+
+            # 执行冷存储归档（归档旧数据）
+            self._archive_cold_data()
 
             # 检索相关记忆
             retriever = MemoryRetriever(store)
@@ -127,54 +127,6 @@ class SessionStartHook:
         except Exception as e:
             # 错误不应阻止会话启动，仅记录
             return HookOutput(error=str(e))
-
-    def _trigger_background_analysis(self) -> None:
-        """触发后台分析
-
-        检查条件：
-        1. auto_extraction.enabled 为 True
-        2. 没有正在运行的分析进程
-        3. 存在未分析的会话
-        """
-        try:
-            from ..analysis.runner import BackgroundRunner
-            from ..storage.json_store import read_json
-
-            # 检查配置
-            profile_path = self.storage_root / "profile.json"
-            profile = read_json(profile_path)
-
-            if profile:
-                settings = profile.get("settings", {})
-                if not settings.get("extraction_enabled", True):
-                    return
-
-                auto_config = settings.get("auto_extraction", {})
-                if not auto_config.get("enabled", True):
-                    return
-
-            # 检查是否已有分析进程运行
-            if BackgroundRunner.is_analysis_running(self.storage_root):
-                logger.debug("后台分析进程已在运行，跳过触发")
-                return
-
-            # 设置日志文件
-            log_file = self.storage_root / "logs" / "analysis.log"
-
-            # 启动后台分析
-            pid = BackgroundRunner.spawn_analysis(
-                storage_root=self.storage_root,
-                log_file=log_file
-            )
-
-            if pid:
-                logger.debug(f"启动后台分析进程: PID={pid}")
-            else:
-                logger.debug("启动后台分析进程失败或已在运行")
-
-        except Exception as e:
-            # 后台分析失败不应影响会话启动
-            logger.warning(f"触发后台分析时出错: {e}")
 
     def _is_injection_enabled(self) -> bool:
         """检查记忆注入是否启用"""
@@ -238,6 +190,18 @@ class SessionStartHook:
         for memory in memories:
             store.trigger(memory.id)
 
+    def _archive_cold_data(self) -> None:
+        """归档冷数据
+
+        将超过 90 天的旧证据归档到压缩文件。
+        """
+        try:
+            cold_storage = ColdStorageManager(self.storage_root)
+            cold_storage.archive_old_evidence(cutoff_days=90)
+        except Exception as e:
+            # 归档失败不应影响主流程
+            logger.warning(f"冷存储归档失败: {e}")
+
 
 def generate_context() -> str:
     """生成记忆上下文的便捷函数
@@ -250,4 +214,3 @@ def generate_context() -> str:
     hook = SessionStartHook()
     output = hook.handle()
     return output.to_json()
-
