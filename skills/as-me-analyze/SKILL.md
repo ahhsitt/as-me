@@ -1,6 +1,6 @@
 ---
 name: as-me-analyze
-description: 分析对话历史并提取用户记忆。在完成有意义的对话后使用。
+description: 当对话中包含值得提取的用户特征（身份背景、价值信念、思维模式、偏好习惯、沟通风格）时使用，将其存储为记忆原子
 ---
 
 # Analyze Conversation for User Memories

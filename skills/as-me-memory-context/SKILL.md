@@ -1,6 +1,6 @@
 ---
 name: as-me-memory-context
-description: 为当前对话注入用户记忆上下文
+description: 内部 skill，由 SessionStart hook 自动调用，注入用户记忆上下文
 ---
 
 # Memory Context Skill
