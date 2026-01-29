@@ -7,32 +7,16 @@ description: 查看和管理存储的记忆原子
 
 查看、管理和删除已存储的记忆原子。
 
-## 记忆类型
-
-- **identity** (身份背景): 用户的职业、角色、目标
-- **value** (价值信念): 核心价值观和原则
-- **thinking** (思维认知): 思考和决策方式
-- **preference** (偏好习惯): 工具、方法、风格偏好
-- **communication** (沟通表达): 沟通风格和表达习惯
-
-## 记忆层级
-
-- **short_term**: 短期记忆，新提取的特征
-- **working**: 工作记忆，被多次触发的特征
-- **long_term**: 长期记忆，高置信度的稳定特征
+**重要**：记忆存储在 `~/.as-me/memories/short-term.json.gz`（gzip 压缩），必须使用 Bash 工具执行 gzip 命令读取。
 
 ## 执行步骤
 
-### Step 1: 读取记忆
+### Step 1: 使用 Bash 工具读取记忆（必须）
+
+**必须使用 Bash 工具执行以下命令**，不要使用 Read 工具：
 
 ```bash
-if [ -f ~/.as-me/memories/short-term.json.gz ]; then
-  gzip -dc ~/.as-me/memories/short-term.json.gz
-elif [ -f ~/.as-me/memories/short-term.json ]; then
-  cat ~/.as-me/memories/short-term.json
-else
-  echo "[]"
-fi
+gzip -dc ~/.as-me/memories/short-term.json.gz 2>/dev/null || echo "[]"
 ```
 
 ### Step 2: 展示记忆列表
