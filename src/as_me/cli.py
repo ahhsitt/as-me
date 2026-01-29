@@ -58,6 +58,28 @@ def analyze():
     click.echo("  as-me memories list")
 
 
+@main.command("extract-session")
+@click.option("--session-id", required=True, help="会话 ID")
+@click.option("--project-path", required=True, help="项目路径")
+def extract_session(session_id: str, project_path: str):
+    """从会话文件中提取记忆（供 Stop hook 后台调用）"""
+    from .extraction import extract_session_background
+
+    extract_session_background(session_id, project_path)
+
+
+@main.command("stop-hook")
+@click.option("--session-id", envvar="CLAUDE_SESSION_ID", help="会话 ID")
+@click.option("--project-path", envvar="CLAUDE_CWD", help="项目路径")
+def stop_hook(session_id: str | None, project_path: str | None):
+    """处理 Stop hook（启动后台提取进程）"""
+    from .hooks.stop import StopHook
+
+    hook = StopHook(session_id=session_id, project_path=project_path)
+    output = hook.handle()
+    click.echo(output.to_json())
+
+
 @main.group("memories")
 def memories():
     """记忆管理命令组"""
